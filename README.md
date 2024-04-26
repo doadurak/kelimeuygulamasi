@@ -1,3 +1,0 @@
-# kelimeuygulamasi
-# kelimeuygulamasi
-# doa
