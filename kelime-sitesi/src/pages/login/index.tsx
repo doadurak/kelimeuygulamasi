@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
+import { signInWithEmailAndPassword , createUserWithEmailAndPassword} from "firebase/auth";
+import {analytics, auth} from "@/firebase";
+import{sendPasswordResetEmail} from "firebase/auth"
 
 const LoginPage: React.FC = () => {
   const [loginEmail, setLoginEmail] = useState('');
@@ -7,26 +10,86 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [registerFirstName, setRegisterFirstName] = useState('');
+  const [registerLastName, setRegisterLastName] = useState('');
+  const [registerGender, setRegisterGender] = useState(''); 
+  const [registerBirthdate, setRegisterBirthdate] = useState('');
 
   const router = useRouter();
 
   const handleLogin = () => {
+    if (!loginEmail || !loginPassword) {
+      return;
+    }
     console.log('Giriş butonuna basıldı. Email:', loginEmail, 'Şifre:', loginPassword);
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push('');
-    }, 2000);
+    signInWithEmailAndPassword(auth, loginEmail, loginPassword)
+      .then((userCredential) => {
+        // Kullanıcı girişi başarılı olduğunda yapılacak işlemler
+        console.log('Kullanıcı girişi başarılı:', userCredential.user);
+        setIsLoading(false);
+        router.push('/home'); // Yönlendirme işlemi
+      })
+      .catch((error) => {
+        // Giriş işlemi başarısız olduğunda hata işlemleri
+        console.error('Kullanıcı girişi başarısız:', error);
+        setIsLoading(false);
+      });
   };
+  
 
   const handleForgotPassword = () => {
     console.log('Şifremi unuttum butonuna basıldı. Email:', forgotPasswordEmail);
-    setShowForgotPassword(false);
+    setIsLoading(true);
+    sendPasswordResetEmail(auth, forgotPasswordEmail)
+      .then(() => {
+        // Şifre sıfırlama e-postası başarıyla gönderildi
+        console.log('Şifre sıfırlama e-postası gönderildi');
+        setIsLoading(false);
+        setShowForgotPassword(false);
+      })
+      .catch((error) => {
+        // Şifre sıfırlama e-postası gönderilirken hata oluştu
+        console.error('Şifre sıfırlama e-postası gönderilirken hata:', error);
+        setIsLoading(false);
+      });
   };
 
   const handleModalClose = () => {
     setShowForgotPassword(false);
+    setShowRegisterModal(false);
   };
+  const handleRegister = () => {
+    console.log('Kayıt ol butonuna basıldı. Email:', registerEmail, 'Şifre:', registerPassword);
+    setIsLoading(true);
+    createUserWithEmailAndPassword(auth, registerEmail, registerPassword)
+      .then((userCredential) => {
+        // Kullanıcı başarıyla kaydedildi
+        console.log('Kullanıcı başarıyla kaydedildi:', userCredential.user);
+        setIsLoading(false);
+        // Giriş yapılabilir veya başka bir işlem yapılabilir
+      })
+      .catch((error) => {
+        // Kullanıcı kaydı sırasında hata oluştu
+        console.error('Kullanıcı kaydı sırasında hata:', error);
+        setIsLoading(false);
+      });
+  };
+  const isUnder18 = (birthdate: string): boolean => {
+    const today = new Date();
+    const birth = new Date(birthdate);
+    const age = today.getFullYear() - birth.getFullYear();
+    const month = today.getMonth() - birth.getMonth();
+    if (month < 0 || (month === 0 && today.getDate() < birth.getDate())) {
+      return age - 1 < 18;
+    }
+    return age < 18;
+  };
+
+
 
   return (
    
@@ -104,7 +167,7 @@ const LoginPage: React.FC = () => {
             justifyContent: 'center', 
             alignItems: 'center', 
             marginTop: '10px' }}>
-            <button onClick={() => router.push('/register')} 
+            <button onClick={() => setShowRegisterModal(true)} 
             style={{ backgroundColor: '#00bfff', 
             color: 'white', padding: '8px 16px', 
             borderRadius: '4px', 
@@ -156,6 +219,127 @@ const LoginPage: React.FC = () => {
             </div>
           </div>
         )}
+         {showRegisterModal && (
+          <div style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', }} onClick={handleModalClose}>
+            <div style={{ 
+              position: 'relative', 
+              borderRadius: '8px', 
+              padding: '20px', 
+              width: '300px', 
+              backgroundColor: '#1e90ff', 
+              textAlign: 'center',
+              margin: 'auto' }} onClick={(e) => e.stopPropagation()}>
+              <span style={{ 
+                position: 'absolute', 
+                top: '8px', 
+                right: '8px', 
+                cursor: 'pointer', 
+                fontSize: '18px' }} onClick={handleModalClose}>×</span>
+              <h2 style={{ marginBottom: '20px', color: 'white', fontStyle: 'normal' }}></h2>
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center' }}>
+                <input
+                  type="text"
+                  placeholder="Adınız"
+                  value={registerFirstName}
+                  onChange={(e) => setRegisterFirstName(e.target.value)}
+                  style={{ 
+                    marginBottom: '10px', 
+                    width: '100%', 
+                    padding: '8px', 
+                    borderRadius: '4px', 
+                    border: '1px solid #ccc' }}
+                />
+                <input
+                  type="text"
+                  placeholder="Soyadınız"
+                  value={registerLastName}
+                  onChange={(e) => setRegisterLastName(e.target.value)}
+                  style={{ 
+                    marginBottom: '10px', 
+                    width: '100%', 
+                    padding: '8px', 
+                    borderRadius: '4px', 
+                    border: '1px solid #ccc' }}
+                />
+
+                <input
+                  type="email"
+                  placeholder="E-posta adresinizi girin"
+                  value={registerEmail}
+                  onChange={(e) => setRegisterEmail(e.target.value)}
+                  style={{ 
+                    marginBottom: '10px', 
+                    width: '100%', 
+                    padding: '8px', 
+                    borderRadius: '4px', 
+                    border: '1px solid #ccc' }}
+                />
+                <input
+                  type="password"
+                  placeholder="Şifrenizi girin"
+                  value={registerPassword}
+                  onChange={(e) => setRegisterPassword(e.target.value)}
+                  style={{ 
+                    marginBottom: '10px', 
+                    width: '100%', 
+                    padding: '8px', 
+                    borderRadius: '4px', 
+                    border: '1px solid #ccc' }}
+                />
+                <input
+                  type="date"
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                  placeholder="Doğum Tarihi"
+                  value={registerBirthdate}
+                  onChange={(e) => setRegisterBirthdate(e.target.value)}
+                  style={{ 
+                    marginBottom: '20px', 
+                    width: '100%', 
+                    padding: '8px', 
+                    borderRadius: '4px', 
+                    border: '1px solid #ccc' }}
+                />
+                <select
+                  value={registerGender}
+                  onChange={(e) => setRegisterGender(e.target.value)}
+                  style={{ 
+                    marginBottom: '10px', 
+                    width: '106%', 
+                    padding: '8px', 
+                    borderRadius: '4px', 
+                    border: '1px solid #ccc' }}>
+                  <option value="">Cinsiyet Seçin</option>
+                  <option value="Erkek">Erkek</option>
+                  <option value="Kadın">Kadın</option>
+                  <option value="Diğer">Diğer</option>
+                </select>
+                <button disabled={isLoading || isUnder18(registerBirthdate)} onClick={handleRegister} style={{ 
+                    width: '106%', 
+                    backgroundColor: '#00008b', 
+                    color: '#fff', 
+                    padding: '8px 16px', 
+                    borderRadius: '4px', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    fontWeight:'bold' }}>
+                  {isLoading ? 'Kaydediliyor...' : 'Kayıt Ol'}
+                </button>
+              </div>
+            </div>
+          </div>
+         )}
       </div>
     </div>
   );
