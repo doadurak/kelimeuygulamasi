@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { signInWithEmailAndPassword , createUserWithEmailAndPassword} from "firebase/auth";
 import {analytics, auth} from "@/firebase";
-import{sendPasswordResetEmail} from "firebase/auth"
+import{sendPasswordResetEmail,updateProfile} from "firebase/auth"
 
 const LoginPage: React.FC = () => {
   const [loginEmail, setLoginEmail] = useState('');
@@ -67,6 +67,10 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
     createUserWithEmailAndPassword(auth, registerEmail, registerPassword)
       .then((userCredential) => {
+        updateProfile(userCredential.user, {displayName: registerFirstName})
+        updateProfile(userCredential.user, {displayName: registerLastName})
+        updateProfile(userCredential.user, {displayName: registerGender})
+        updateProfile(userCredential.user, {displayName: registerBirthdate})
         // Kullanıcı başarıyla kaydedildi
         console.log('Kullanıcı başarıyla kaydedildi:', userCredential.user);
         setIsLoading(false);
