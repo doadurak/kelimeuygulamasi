@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { signInWithEmailAndPassword , createUserWithEmailAndPassword} from "firebase/auth";
 import {analytics, auth} from "@/firebase";
+import { db } from "../../firestore";
+import { doc, setDoc } from "firebase/firestore";
+import { collection } from 'firebase/firestore';
 import{sendPasswordResetEmail,updateProfile} from "firebase/auth"
 
 const LoginPage: React.FC = () => {
@@ -24,35 +27,40 @@ const LoginPage: React.FC = () => {
     if (!loginEmail || !loginPassword) {
       return;
     }
+  
     console.log('Giriş butonuna basıldı. Email:', loginEmail, 'Şifre:', loginPassword);
     setIsLoading(true);
+  
     signInWithEmailAndPassword(auth, loginEmail, loginPassword)
       .then((userCredential) => {
-        // Kullanıcı girişi başarılı olduğunda yapılacak işlemler
         console.log('Kullanıcı girişi başarılı:', userCredential.user);
+        const userRef = doc(collection(db, 'users'), userCredential.user.uid);
+        setDoc(userRef, {
+          email: loginEmail
+        }, { merge: true });
+  
+        // Giriş yapan kullanıcının e-postasını yerel depolamaya ekle
+        localStorage.setItem('userEmail', loginEmail);
+  
         setIsLoading(false);
-        router.push('/home'); // Yönlendirme işlemi
+        router.push('/home');
       })
       .catch((error) => {
-        // Giriş işlemi başarısız olduğunda hata işlemleri
         console.error('Kullanıcı girişi başarısız:', error);
         setIsLoading(false);
       });
   };
-  
 
   const handleForgotPassword = () => {
     console.log('Şifremi unuttum butonuna basıldı. Email:', forgotPasswordEmail);
     setIsLoading(true);
     sendPasswordResetEmail(auth, forgotPasswordEmail)
       .then(() => {
-        // Şifre sıfırlama e-postası başarıyla gönderildi
         console.log('Şifre sıfırlama e-postası gönderildi');
         setIsLoading(false);
         setShowForgotPassword(false);
       })
       .catch((error) => {
-        // Şifre sıfırlama e-postası gönderilirken hata oluştu
         console.error('Şifre sıfırlama e-postası gönderilirken hata:', error);
         setIsLoading(false);
       });

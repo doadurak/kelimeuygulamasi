@@ -17,6 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const authInstance = getAuth(app);
 let auth: Auth = authInstance;
+const db= getFirestore(app);
 
 let analytics: any = null;
 if (isBrowser()) {
@@ -24,4 +25,4 @@ if (isBrowser()) {
 }
 
 
-export { analytics, auth };
+export { analytics, auth , db };

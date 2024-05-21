@@ -1,27 +1,13 @@
-import React, { useState } from 'react';
+import '../styles/globals.css'
+import type { AppProps } from 'next/app'
+import { UserProvider } from '../add-word/UserContext'
 
-const App: React.FC = () => {
-  // State tanımlama
-  const [count, setCount] = useState<number>(0);
-
-  // Artırma fonksiyonu
-  const increment = () => {
-    setCount(prevCount => prevCount + 1);
-  };
-
-  // Azaltma fonksiyonu
-  const decrement = () => {
-    setCount(prevCount => prevCount - 1);
-  };
-
+function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <div>
-      <h1>Counter App</h1>
-      <p>Count: {count}</p>
-      <button onClick={increment}>Increment</button>
-      <button onClick={decrement}>Decrement</button>
-    </div>
-  );
-};
+    <UserProvider>
+      <Component {...pageProps} />
+    </UserProvider>
+  )
+}
 
-export default App;
+export default MyApp
