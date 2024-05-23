@@ -17,6 +17,7 @@ type Word = {
   theShownYear: number;
   imageURL: string;
   exampleSentence: string;
+  exampleSentence2: string;
   userEmail: string;
   knownDate:string;
 };
