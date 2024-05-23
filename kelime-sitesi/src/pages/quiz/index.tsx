@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { db } from "../../firestore";
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { db } from "../../firebase";
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore'; // Firestore için bu modülleri kullanın
 import MenuBar from "@/components/customMenuBar/customMenuBar";
 import { auth } from '../../firebase'; 
 import { useAuthState } from 'react-firebase-hooks/auth'; 
+
 
 type Word = {
   id: string;

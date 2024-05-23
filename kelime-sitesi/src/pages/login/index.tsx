@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import { signInWithEmailAndPassword , createUserWithEmailAndPassword} from "firebase/auth";
-import {analytics, auth} from "@/firebase";
-import { db } from "../../firestore";
-import { doc, setDoc } from "firebase/firestore";
-import { collection } from 'firebase/firestore';
-import{sendPasswordResetEmail,updateProfile} from "firebase/auth"
+import { signInWithEmailAndPassword , createUserWithEmailAndPassword,sendPasswordResetEmail,updateProfile} from "firebase/auth";
+import {auth,db} from "@/firebase";
+import { doc, setDoc,collection  } from "firebase/firestore";
+
+
 
 const LoginPage: React.FC = () => {
   const [loginEmail, setLoginEmail] = useState('');
@@ -27,36 +26,27 @@ const LoginPage: React.FC = () => {
     if (!loginEmail || !loginPassword) {
       return;
     }
-  
-    console.log('Giriş butonuna basıldı. Email:', loginEmail, 'Şifre:', loginPassword);
     setIsLoading(true);
-  
     signInWithEmailAndPassword(auth, loginEmail, loginPassword)
       .then((userCredential) => {
-        console.log('Kullanıcı girişi başarılı:', userCredential.user);
         const userRef = doc(collection(db, 'users'), userCredential.user.uid);
         setDoc(userRef, {
-          email: loginEmail
-        }, { merge: true });
-  
-        // Giriş yapan kullanıcının e-postasını yerel depolamaya ekle
-        localStorage.setItem('userEmail', loginEmail);
-  
+        email: loginEmail
+      }, { merge: true });
         setIsLoading(false);
-        router.push('/home');
+        router.push('/home'); 
       })
       .catch((error) => {
         console.error('Kullanıcı girişi başarısız:', error);
         setIsLoading(false);
       });
   };
+  
 
   const handleForgotPassword = () => {
-    console.log('Şifremi unuttum butonuna basıldı. Email:', forgotPasswordEmail);
     setIsLoading(true);
     sendPasswordResetEmail(auth, forgotPasswordEmail)
       .then(() => {
-        console.log('Şifre sıfırlama e-postası gönderildi');
         setIsLoading(false);
         setShowForgotPassword(false);
       })
@@ -70,34 +60,18 @@ const LoginPage: React.FC = () => {
     setShowForgotPassword(false);
     setShowRegisterModal(false);
   };
-
-  
   const handleRegister = () => {
-    console.log('Kayıt ol butonuna basıldı. Email:', registerEmail, 'Şifre:', registerPassword);
     setIsLoading(true);
     createUserWithEmailAndPassword(auth, registerEmail, registerPassword)
-      .then(async (userCredential) => {
+      .then((userCredential) => {
+        updateProfile(userCredential.user, {displayName: registerFirstName})
+        updateProfile(userCredential.user, {displayName: registerLastName})
+        updateProfile(userCredential.user, {displayName: registerGender})
+        updateProfile(userCredential.user, {displayName: registerBirthdate})
         // Kullanıcı başarıyla kaydedildi
         console.log('Kullanıcı başarıyla kaydedildi:', userCredential.user);
-
-        // Kullanıcı profilini güncelle
-        await updateProfile(userCredential.user, {
-          displayName: registerFirstName + " " + registerLastName
-        });
-
-        // Firestore'a kullanıcı bilgilerini ekle
-        const userRef = doc(collection(db, 'users'), userCredential.user.uid);
-        await setDoc(userRef, {
-          firstName: registerFirstName,
-          lastName: registerLastName,
-          email: registerEmail,
-          gender: registerGender,
-          birthdate: registerBirthdate
-        });
-
         setIsLoading(false);
         // Giriş yapılabilir veya başka bir işlem yapılabilir
-        router.push('/home');
       })
       .catch((error) => {
         // Kullanıcı kaydı sırasında hata oluştu
@@ -123,14 +97,12 @@ const LoginPage: React.FC = () => {
     <div style={{
       backgroundColor:'#00008b',
       // backgroundImage: "url('/black.png')", // Resmin yolunu doğru şekilde belirtin
-      backgroundSize: 'cover', 
+      // backgroundSize: 'cover', // Resmi kaplamasını sağlar
       // backgroundRepeat: 'no-repeat', // Resmin tek seferde görünmesini sağlar
       // position: 'relative', // Container'ın içeriğini tutmak için
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      margin: 0, 
-     
       
     }}>
       <div style={{ 
