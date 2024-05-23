@@ -1,10 +1,8 @@
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { useCollection } from 'react-firebase-hooks/firestore';
-import { auth } from "../../firebase";
-import { collection, query, where, doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from "../../firestore";
+import { useCollection } from 'react-firebase-hooks/firestore'; // Firestore hook'unu buradan alıyoruz
+import { auth, db } from "../../firebase";
+import { collection, query, where, doc, updateDoc, getDoc ,DocumentData} from 'firebase/firestore'; // Firestore modüllerini buradan alıyoruz
 import { useState, useEffect } from 'react';
-import { DocumentData } from 'firebase/firestore';
 import MenuBar from "@/components/customMenuBar/customMenuBar";
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
@@ -111,7 +109,6 @@ const Settings = () => {
               <p><strong>Doğru Oranı:</strong> {correctPercentage}%</p>
               <p><strong>Yanlış Oranı:</strong> {incorrectPercentage}%</p>
             </div>
-            <button onClick={() => handleEndQuiz(5, 2, 7)}>Quizi Sonlandır</button> {/* Burada örnek bir quiz sonlandırma işlemi */}
           </>
         ) : null}
       </div>
@@ -120,3 +117,5 @@ const Settings = () => {
 };
 
 export default Settings;
+
+
