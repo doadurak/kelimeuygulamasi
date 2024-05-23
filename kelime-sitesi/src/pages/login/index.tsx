@@ -70,19 +70,34 @@ const LoginPage: React.FC = () => {
     setShowForgotPassword(false);
     setShowRegisterModal(false);
   };
+
+  
   const handleRegister = () => {
     console.log('Kayıt ol butonuna basıldı. Email:', registerEmail, 'Şifre:', registerPassword);
     setIsLoading(true);
     createUserWithEmailAndPassword(auth, registerEmail, registerPassword)
-      .then((userCredential) => {
-        updateProfile(userCredential.user, {displayName: registerFirstName})
-        updateProfile(userCredential.user, {displayName: registerLastName})
-        updateProfile(userCredential.user, {displayName: registerGender})
-        updateProfile(userCredential.user, {displayName: registerBirthdate})
+      .then(async (userCredential) => {
         // Kullanıcı başarıyla kaydedildi
         console.log('Kullanıcı başarıyla kaydedildi:', userCredential.user);
+
+        // Kullanıcı profilini güncelle
+        await updateProfile(userCredential.user, {
+          displayName: registerFirstName + " " + registerLastName
+        });
+
+        // Firestore'a kullanıcı bilgilerini ekle
+        const userRef = doc(collection(db, 'users'), userCredential.user.uid);
+        await setDoc(userRef, {
+          firstName: registerFirstName,
+          lastName: registerLastName,
+          email: registerEmail,
+          gender: registerGender,
+          birthdate: registerBirthdate
+        });
+
         setIsLoading(false);
         // Giriş yapılabilir veya başka bir işlem yapılabilir
+        router.push('/home');
       })
       .catch((error) => {
         // Kullanıcı kaydı sırasında hata oluştu
@@ -108,12 +123,14 @@ const LoginPage: React.FC = () => {
     <div style={{
       backgroundColor:'#00008b',
       // backgroundImage: "url('/black.png')", // Resmin yolunu doğru şekilde belirtin
-      // backgroundSize: 'cover', // Resmi kaplamasını sağlar
+      backgroundSize: 'cover', 
       // backgroundRepeat: 'no-repeat', // Resmin tek seferde görünmesini sağlar
       // position: 'relative', // Container'ın içeriğini tutmak için
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
+      margin: 0, 
+     
       
     }}>
       <div style={{ 
