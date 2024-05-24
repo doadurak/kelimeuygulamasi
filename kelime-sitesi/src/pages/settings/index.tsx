@@ -1,22 +1,54 @@
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { useCollection } from 'react-firebase-hooks/firestore'; // Firestore hook'unu buradan alıyoruz
+import { useCollection } from 'react-firebase-hooks/firestore'; 
 import { auth, db } from "../../firebase";
-import { collection, query, where, doc, updateDoc, getDoc ,DocumentData} from 'firebase/firestore'; // Firestore modüllerini buradan alıyoruz
 import { useState, useEffect } from 'react';
 import MenuBar from "@/components/customMenuBar/customMenuBar";
+import { Chart, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { collection, getDocs, query, where } from 'firebase/firestore'; 
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+
+Chart.register(ArcElement, Tooltip, Legend);
+
+
+type Word = {
+  id: string;
+  englishWord: string;
+  englishDescription: string;
+  turkishMeaning: string;
+  turkishTranslation: string;
+  theKnownCount: number;
+  theShownDay: number;
+  theShownMonth: number;
+  theShownYear: number;
+  imageURL: string;
+  exampleSentence: string;
+  exampleSentence2: string;
+  userEmail: string;
+  knownDate: string;
+  wordSubject: string;
+};
+
+type UserData = {
+  firstName: string;
+  lastName: string;
+  birthdate: string;
+  gender: string;
+  email: string;
+  
+};
 
 const Settings = () => {
   const [user, loading, error] = useAuthState(auth);
   const [userExists, setUserExists] = useState(true);
-  const [userData, setUserData] = useState<DocumentData | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [nounCount, setNounCount] = useState<number>(0);
+  const [adjectiveCount, setAdjectiveCount] = useState<number>(0);
+  const [pronounCount, setPronounCount] = useState<number>(0);
+  const [addedWord, setAddedWord] = useState<Word[]>([]);
 
-  const [userDataSnapshot, userLoading, userError] = useCollection(
-    user ? query(collection(db, 'users'), where('email', '==', user.email)) : null
-  );
+  const userQuery = user ? query(collection(db, 'users'), where('email', '==', user.email)) : null;
+  const [userDataSnapshot, userLoading, userError] = useCollection(userQuery);
 
   useEffect(() => {
     if (!user || !userDataSnapshot) return;
@@ -26,9 +58,62 @@ const Settings = () => {
       return;
     }
 
-    const userDataArray = userDataSnapshot.docs.map(doc => doc.data() as DocumentData);
+    const userDataArray = userDataSnapshot.docs.map(doc => doc.data() as UserData);
     setUserData(userDataArray[0]);
   }, [user, userDataSnapshot]);
+
+  useEffect(() => {
+    const fetchWords = async () => {
+      if (user) {
+        const wordsQuery = query(collection(db, 'words'), where('userEmail', '==', user.email));
+        const wordsSnapshot = await getDocs(wordsQuery);
+        const wordsArray = wordsSnapshot.docs.map(doc => doc.data() as Word);
+        setAddedWord(wordsArray);
+      }
+    };
+    
+    fetchWords();
+  }, [user]);
+
+  useEffect(() => {
+    if (addedWord.length > 0) {
+      let noun = 0;
+      let adjective = 0;
+      let pronoun = 0;
+
+      addedWord.forEach(word => {
+        switch (word.wordSubject) {
+          case 'noun':
+            noun += word.theKnownCount;
+            break;
+          case 'adjective':
+            adjective += word.theKnownCount;
+            break;
+          case 'pronoun':
+            pronoun += word.theKnownCount;
+            break;
+          default:
+            break;
+        }
+      });
+
+      setNounCount(noun);
+      setAdjectiveCount(adjective);
+      setPronounCount(pronoun);
+    }
+  }, [addedWord]);
+
+  const data = {
+    labels: ['İsim', 'Sıfat', 'Zamir'],
+    datasets: [
+      {
+        label: 'Doğru Bilinen Kelimeler',
+        data: [nounCount, adjectiveCount, pronounCount],
+        backgroundColor: ['#4caf50', '#f44336', '#2196f3'],
+        hoverBackgroundColor: ['#66bb6a', '#e57373', '#64b5f6'],
+      },
+    ],
+  };
 
   if (loading || userLoading) return <div>Loading...</div>;
   if (error || userError) return <div>Error: {error ? error.message : userError?.message}</div>;
@@ -36,55 +121,6 @@ const Settings = () => {
   if (!user) {
     return <div>Oturum açmanız gerekmektedir.</div>;
   }
-
-  const correctAnswers = userData?.correctAnswers || 0;
-  const incorrectAnswers = userData?.incorrectAnswers || 0;
-  const totalQuestions = correctAnswers + incorrectAnswers;
-  const correctPercentage = totalQuestions ? ((correctAnswers / totalQuestions) * 100).toFixed(2) : 0;
-  const incorrectPercentage = totalQuestions ? ((incorrectAnswers / totalQuestions) * 100).toFixed(2) : 0;
-
-  const data = {
-    labels: ['Doğru', 'Yanlış'],
-    datasets: [
-      {
-        label: 'Quiz Sonuçları',
-        data: [correctAnswers, incorrectAnswers],
-        backgroundColor: ['#4caf50', '#f44336'],
-        hoverBackgroundColor: ['#66bb6a', '#e57373'],
-      },
-    ],
-  };
-
-  const handleEndQuiz = async (newCorrectCount:number, newIncorrectCount:number, newTotalQuestions:number) => {
-    if (user && user.email) {
-      try {
-        const userRef = doc(db, 'users', user.email);
-        const userDoc = await getDoc(userRef);
-
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const updatedCorrectAnswers = (userData.correctAnswers || 0) + newCorrectCount;
-          const updatedIncorrectAnswers = (userData.incorrectAnswers || 0) + newIncorrectCount;
-          const updatedTotalQuestions = (userData.totalQuestions || 0) + newTotalQuestions;
-
-          await updateDoc(userRef, {
-            correctAnswers: updatedCorrectAnswers,
-            incorrectAnswers: updatedIncorrectAnswers,
-            totalQuestions: updatedTotalQuestions,
-          });
-
-          setUserData({
-            ...userData,
-            correctAnswers: updatedCorrectAnswers,
-            incorrectAnswers: updatedIncorrectAnswers,
-            totalQuestions: updatedTotalQuestions,
-          });
-        }
-      } catch (error) {
-        console.error("Error updating document: ", error);
-      }
-    }
-  };
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#00008b' }}>
@@ -100,14 +136,14 @@ const Settings = () => {
             <p><strong>Doğum Tarihi:</strong> {userData.birthdate}</p>
             <p><strong>Cinsiyet:</strong> {userData.gender}</p>
             <p><strong>Email:</strong> {userData.email}</p>
-            <h2>Quiz Analizi</h2>
+            <h2>Doğru Bilinen Kelimeler Analizi</h2>
             <div style={{ width: '300px', height: '300px', margin: '0 auto' }}>
               <Pie data={data} />
             </div>
             <div style={{ marginTop: '20px' }}>
-              <p><strong>Toplam Soru Sayısı:</strong> {totalQuestions}</p>
-              <p><strong>Doğru Oranı:</strong> {correctPercentage}%</p>
-              <p><strong>Yanlış Oranı:</strong> {incorrectPercentage}%</p>
+              <p><strong>Toplam İsim Sayısı:</strong> {nounCount}</p>
+              <p><strong>Toplam Sıfat Sayısı:</strong> {adjectiveCount}</p>
+              <p><strong>Toplam Zamir Sayısı:</strong> {pronounCount}</p>
             </div>
           </>
         ) : null}
@@ -117,5 +153,3 @@ const Settings = () => {
 };
 
 export default Settings;
-
-

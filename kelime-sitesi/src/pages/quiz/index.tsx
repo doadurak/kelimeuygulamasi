@@ -23,6 +23,10 @@ type Word = {
   knownDate:string;
 };
 
+type WordTypeCount = {
+  [key: string]: number;
+};
+
 const QuizPage: React.FC = () => {
   const [showedWords, setShowedWords] = useState<Word[]>([]);
   const [howMuch, setHowMuch] = useState<number>(0);
@@ -35,6 +39,12 @@ const QuizPage: React.FC = () => {
   const [knownWords, setKnownWords] = useState<{ [key: string]: { count: number; lastKnownDate: Date } }>({});
 
   const [user] = useAuthState(auth);
+
+  const [wordTypeCounts, setWordTypeCounts] = useState<WordTypeCount>({});
+  const [totalQuestions, setTotalQuestions] = useState<number>(0);
+  const [correctAnswers, setCorrectAnswers] = useState<number>(0);
+  const [incorrectAnswers, setIncorrectAnswers] = useState<number>(0);
+
 
   useEffect(() => {
     fetchQuizData();

@@ -60,25 +60,36 @@ const LoginPage: React.FC = () => {
     setShowForgotPassword(false);
     setShowRegisterModal(false);
   };
+
   const handleRegister = () => {
     setIsLoading(true);
     createUserWithEmailAndPassword(auth, registerEmail, registerPassword)
-      .then((userCredential) => {
-        updateProfile(userCredential.user, {displayName: registerFirstName})
-        updateProfile(userCredential.user, {displayName: registerLastName})
-        updateProfile(userCredential.user, {displayName: registerGender})
-        updateProfile(userCredential.user, {displayName: registerBirthdate})
-        // Kullanıcı başarıyla kaydedildi
-        console.log('Kullanıcı başarıyla kaydedildi:', userCredential.user);
+      .then(async (userCredential) => {
+        const user = userCredential.user;
+
+        // Save user data to Firestore
+        const userRef = doc(collection(db, 'users'), user.uid);
+        await setDoc(userRef, {
+          firstName: registerFirstName,
+          lastName: registerLastName,
+          birthdate: registerBirthdate,
+          gender: registerGender,
+          email: registerEmail
+        });
+
+        // Update user profile (optional)
+        await updateProfile(user, { displayName: `${registerFirstName} ${registerLastName}` });
+
+        console.log('Kullanıcı başarıyla kaydedildi:', user);
         setIsLoading(false);
-        // Giriş yapılabilir veya başka bir işlem yapılabilir
+        router.push('/home'); // Navigate to home or another page after registration
       })
       .catch((error) => {
-        // Kullanıcı kaydı sırasında hata oluştu
         console.error('Kullanıcı kaydı sırasında hata:', error);
         setIsLoading(false);
       });
   };
+
   const isUnder18 = (birthdate: string): boolean => {
     const today = new Date();
     const birth = new Date(birthdate);
