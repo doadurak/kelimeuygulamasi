@@ -19,6 +19,7 @@ const LoginPage: React.FC = () => {
   const [registerLastName, setRegisterLastName] = useState('');
   const [registerGender, setRegisterGender] = useState(''); 
   const [registerBirthdate, setRegisterBirthdate] = useState('');
+  const [loginError, setLoginError]= useState<String>('');
 
   const router = useRouter();
 
@@ -39,6 +40,11 @@ const LoginPage: React.FC = () => {
       .catch((error) => {
         console.error('Kullanıcı girişi başarısız:', error);
         setIsLoading(false);
+        if (error.code =='auth/wrong-password') {
+          setLoginError('Şifrenizi yanlış girdiniz.');
+        } else {
+          setLoginError('Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.');
+        }
       });
   };
   
@@ -67,7 +73,6 @@ const LoginPage: React.FC = () => {
       .then(async (userCredential) => {
         const user = userCredential.user;
 
-        // Save user data to Firestore
         const userRef = doc(collection(db, 'users'), user.uid);
         await setDoc(userRef, {
           firstName: registerFirstName,
@@ -77,12 +82,12 @@ const LoginPage: React.FC = () => {
           email: registerEmail
         });
 
-        // Update user profile (optional)
+        
         await updateProfile(user, { displayName: `${registerFirstName} ${registerLastName}` });
 
         console.log('Kullanıcı başarıyla kaydedildi:', user);
         setIsLoading(false);
-        router.push('/home'); // Navigate to home or another page after registration
+        router.push('/home'); 
       })
       .catch((error) => {
         console.error('Kullanıcı kaydı sırasında hata:', error);
@@ -107,10 +112,6 @@ const LoginPage: React.FC = () => {
    
     <div style={{
       backgroundColor:'#00008b',
-      // backgroundImage: "url('/black.png')", // Resmin yolunu doğru şekilde belirtin
-      // backgroundSize: 'cover', // Resmi kaplamasını sağlar
-      // backgroundRepeat: 'no-repeat', // Resmin tek seferde görünmesini sağlar
-      // position: 'relative', // Container'ın içeriğini tutmak için
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
@@ -155,7 +156,21 @@ const LoginPage: React.FC = () => {
                 borderRadius: '4px', 
                 border: '1px solid #ccc' }}
             />
+            </div>
+          {loginError && (
+       <div style={{
+         position: 'absolute',
+         top: '10px',
+         right: '10px',
+         backgroundColor: '#ff0000',
+         color: '#fff',
+         padding: '8px',
+         borderRadius: '4px',
+         zIndex: 9999 
+           }}>
+             {loginError}
           </div>
+                    )}
           <div style={{ 
             display: 'flex', 
             justifyContent: 'center', 
@@ -201,37 +216,8 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Şifremi Unuttum Modal */}
+        {/* ForgotPasswords Modal */}
         {showForgotPassword && (
-          <div style={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            bottom: 0, 
-            backgroundColor: 'rgba(0, 0, 0, 0.5)', 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', }} onClick={handleModalClose}>
-            <div style={{ position: 'relative', borderRadius: '8px', padding: '20px', width: '300px', backgroundColor: '#1e90ff', textAlign: 'center',margin:'auto' }} onClick={(e) => e.stopPropagation()}>
-              <span style={{ position: 'absolute', top: '8px', right: '8px', cursor: 'pointer', fontSize: '18px' }} onClick={handleModalClose}>×</span>
-              <h2 style={{ marginBottom: '20px',color: 'white', fontStyle:'normal'}}>Şifreni mi Unuttun?</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <input
-                  type="email"
-                  placeholder="E-posta adresinizi girin"
-                  value={forgotPasswordEmail}
-                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
-                  style={{ marginBottom: '20px', width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                />
-                <button disabled={isLoading} onClick={handleForgotPassword} style={{ width: '100%', backgroundColor: '#00008b', color: '#fff', padding: '8px 16px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight:'bold' }}>
-                  {isLoading ? 'Gönderiliyor...' : 'Giriş Bağlantısı Gönder'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-         {showRegisterModal && (
           <div style={{ 
             position: 'fixed', 
             top: 0, 
@@ -249,6 +235,72 @@ const LoginPage: React.FC = () => {
               width: '300px', 
               backgroundColor: '#1e90ff', 
               textAlign: 'center',
+              margin:'auto' 
+            }} 
+               onClick={(e) => e.stopPropagation()}>
+              <span style={{ 
+                position: 'absolute', 
+                top: '8px', 
+                right: '8px', 
+                cursor: 'pointer', 
+                fontSize: '18px' 
+                 }} 
+                   onClick={handleModalClose}>×</span>
+              <h2 style={{ marginBottom: '20px',
+              color: 'white', 
+              fontStyle:'normal'
+              }}>Şifreni mi Unuttun?</h2>
+              <div style={{
+                 display: 'flex', 
+                 flexDirection: 'column', 
+                 alignItems: 'center' }}>
+                <input
+                  type="email"
+                  placeholder="E-posta adresinizi girin"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  style={{ 
+                    marginBottom: '20px', 
+                    width: '100%', 
+                    padding: '8px', 
+                    borderRadius: '4px', 
+                    border: '1px solid #ccc' }}
+                />
+                <button disabled={isLoading} onClick={handleForgotPassword} 
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: '#00008b', 
+                  color: '#fff', 
+                  padding: '8px 16px', 
+                  borderRadius: '4px', 
+                  border: 'none', 
+                  cursor: 'pointer', 
+                  fontWeight:'bold' }}>
+                  {isLoading ? 'Gönderiliyor...' : 'Giriş Bağlantısı Gönder'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+         {showRegisterModal && (
+          <div style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', }} 
+            onClick={handleModalClose}>
+            <div style={{ 
+              position: 'relative', 
+              borderRadius: '8px', 
+              padding: '20px', 
+              width: '300px', 
+              backgroundColor: '#1e90ff', 
+              textAlign: 'center',
               margin: 'auto' }} onClick={(e) => e.stopPropagation()}>
               <span style={{ 
                 position: 'absolute', 
@@ -256,7 +308,10 @@ const LoginPage: React.FC = () => {
                 right: '8px', 
                 cursor: 'pointer', 
                 fontSize: '18px' }} onClick={handleModalClose}>×</span>
-              <h2 style={{ marginBottom: '20px', color: 'white', fontStyle: 'normal' }}></h2>
+              <h2 style={{ 
+                marginBottom: '20px', 
+                color: 'white', 
+                fontStyle: 'normal' }}></h2>
               <div style={{ 
                 display: 'flex', 
                 flexDirection: 'column', 

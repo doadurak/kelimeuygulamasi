@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
+import MenuBar from "@/components/customMenuBar/customMenuBar";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 
@@ -15,78 +16,13 @@ const HomePage = () => {
     router.push('/quiz'); 
   };
 
-  const handleLogout = () => {
-    router.push('/login'); 
-  };
-
-  const handleQuiz = () => {
-    router.push('/quiz'); 
-  };
-
-  const handleAddWordPage = () => {
-    router.push('/add-word'); 
-  };
-
-  const handleSettings = () => {
-    router.push('/settings'); 
-  };
-
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#00008b', display: 'flex' }}>
-      <div style={{
-        width: '200px',
-        backgroundColor: '#1e90ff',
-        padding: '20px',
-        position: 'fixed',
-        left: '0',
-        top: '0',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        alignItems: 'flex-start',
-      }}>
-        <h1 style={{ color: '#fff', marginBottom: '20px', textAlign: 'left' }}>Kelime Sitesi</h1>
-        <ul style={{
-          listStyle: 'none',
-          padding: '0',
-          width: '100%',
-          textAlign: 'left',
-        }}>
-          <li style={{ marginBottom: '20px', width: '100%' }}>
-            <div style={{ border: '2px solid #00008b', padding: '6px', borderRadius: '8px', width: '100%' }}>
-              <a href="#" onClick={handleQuiz} style={{ color: '#fff', textDecoration: 'none', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                <img src="/soruisareti.png" alt="Quiz" style={{ width: '20px', marginRight: '10px' }} />
-                Quiz
-              </a>
-            </div>
-          </li>
-          <li style={{ marginBottom: '20px', width: '100%' }}>
-            <div style={{ border: '2px solid #00008b', padding: '6px', borderRadius: '8px', width: '100%' }}>
-              <a href="#" onClick={handleAddWordPage} style={{ color: '#fff', textDecoration: 'none', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                <img src="/ekleme.png" alt="Add Word" style={{ width: '20px', marginRight: '10px' }} />
-                Kelime Ekleme
-              </a>
-            </div>
-          </li>
-          <li style={{ marginBottom: '20px', width: '100%' }}>
-            <div style={{ border: '2px solid #00008b', padding: '6px', borderRadius: '8px', width: '100%' }}>
-              <a href="#" onClick={handleSettings} style={{ color: '#fff', textDecoration: 'none', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                <img src="/ayarlar.png" alt="Settings" style={{ width: '20px', marginRight: '10px' }} />
-                Ayarlar
-              </a>
-            </div>
-          </li>
-        </ul>
-        <div style={{ width: '100%', textAlign: 'left', marginTop: '420px' }}>
-          <div style={{ border: '2px solid #00008b', padding: '6px', borderRadius: '8px', width: '100%' }}>
-            <a href="#" onClick={handleLogout} style={{ color: '#fff', textDecoration: 'none', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-              <img src="/cikis.png" alt="Logout" style={{ width: '20px', marginRight: '10px' }} />
-              Çıkış
-            </a>
-          </div>
-        </div>
-      </div>
+    <div style={{ 
+      minHeight: '100vh', 
+      backgroundColor: '#00008b', 
+      display: 'flex' 
+    }}>
+      <MenuBar /> 
       <div style={{
         flex: '1',
         marginLeft: '200px',
@@ -96,9 +32,20 @@ const HomePage = () => {
         alignItems: 'center',
         color: '#fff',
       }}>
-        <main style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '20px' }}>
-            <div style={{ borderRadius: '50%', overflow: 'hidden', border: '2px solid #1e90ff' }}>
+        <main style={{ 
+          textAlign: 'center', 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            margin: '20px' }}>
+            <div style={{ 
+              borderRadius: '50%', 
+              overflow: 'hidden', 
+              border: '2px solid #1e90ff' }}>
               <Image
                 src="/kalem.png"
                 alt="Kalem Resmi"
@@ -107,10 +54,20 @@ const HomePage = () => {
                 onClick={handleFirstImageClick}
               />
             </div>
-            <p style={{ color: '#fff', marginTop: '10px' }}>Kelime Ekle</p>
+            <p style={{ 
+              color: '#fff', 
+              marginTop: '10px' 
+              }}>Kelime Ekle</p>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '20px' }}>
-            <div style={{ borderRadius: '50%', overflow: 'hidden', border: '2px solid #1e90ff' }}>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            margin: '20px' }}>
+            <div style={{ 
+              borderRadius: '50%', 
+              overflow: 'hidden', 
+              border: '2px solid #1e90ff' }}>
               <Image
                 src="/sinav.png"
                 alt="Sınav Resmi"

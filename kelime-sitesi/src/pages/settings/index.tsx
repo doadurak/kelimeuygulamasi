@@ -44,7 +44,7 @@ const Settings = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [nounCount, setNounCount] = useState<number>(0);
   const [adjectiveCount, setAdjectiveCount] = useState<number>(0);
-  const [pronounCount, setPronounCount] = useState<number>(0);
+  const [verbCount, setVerbCount] = useState<number>(0);
   const [addedWord, setAddedWord] = useState<Word[]>([]);
 
   const userQuery = user ? query(collection(db, 'users'), where('email', '==', user.email)) : null;
@@ -79,7 +79,7 @@ const Settings = () => {
     if (addedWord.length > 0) {
       let noun = 0;
       let adjective = 0;
-      let pronoun = 0;
+      let verb = 0;
 
       addedWord.forEach(word => {
         switch (word.wordSubject) {
@@ -89,8 +89,8 @@ const Settings = () => {
           case 'adjective':
             adjective += word.theKnownCount;
             break;
-          case 'pronoun':
-            pronoun += word.theKnownCount;
+          case 'verb':
+            verb += word.theKnownCount;
             break;
           default:
             break;
@@ -99,21 +99,26 @@ const Settings = () => {
 
       setNounCount(noun);
       setAdjectiveCount(adjective);
-      setPronounCount(pronoun);
+      setVerbCount(verb);
     }
   }, [addedWord]);
 
   const data = {
-    labels: ['İsim', 'Sıfat', 'Zamir'],
+    labels: ['İsim', 'Sıfat', 'Fiil'],
     datasets: [
       {
         label: 'Doğru Bilinen Kelimeler',
-        data: [nounCount, adjectiveCount, pronounCount],
+        data: [nounCount, adjectiveCount, verbCount],
         backgroundColor: ['#4caf50', '#f44336', '#2196f3'],
         hoverBackgroundColor: ['#66bb6a', '#e57373', '#64b5f6'],
       },
     ],
   };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
 
   if (loading || userLoading) return <div>Loading...</div>;
   if (error || userError) return <div>Error: {error ? error.message : userError?.message}</div>;
@@ -123,9 +128,22 @@ const Settings = () => {
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#00008b' }}>
+    <div style={{
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      height: '100vh', 
+      backgroundColor: '#00008b' }}>
       <MenuBar />
-      <div style={{ margin: '20px', padding: '20px', border: '1px solid #ccc', borderRadius: '5px', background: '#1e90ff', marginLeft: '100px', color: '#fff', textAlign: 'center' }}>
+      <div style={{ 
+        margin: '20px', 
+        padding: '20px', 
+        border: '1px solid #ccc', 
+        borderRadius: '5px', 
+        background: '#1e90ff', 
+        marginLeft: '100px', 
+        color: '#fff', 
+        textAlign: 'center' }}>
         <h2>Kullanıcı Bilgileri</h2>
         {!userExists ? (
           <div>Kullanıcı verisi bulunamadı.</div>
@@ -141,10 +159,19 @@ const Settings = () => {
               <Pie data={data} />
             </div>
             <div style={{ marginTop: '20px' }}>
-              <p><strong>Toplam İsim Sayısı:</strong> {nounCount}</p>
-              <p><strong>Toplam Sıfat Sayısı:</strong> {adjectiveCount}</p>
-              <p><strong>Toplam Zamir Sayısı:</strong> {pronounCount}</p>
+              <p><strong>Doğru Bilinen İsim Sayısı:</strong> {nounCount}</p>
+              <p><strong>Doğru Bilinen Sıfat Sayısı:</strong> {adjectiveCount}</p>
+              <p><strong>Doğru Bilinen Fiil Sayısı:</strong> {verbCount}</p>
             </div>
+            <button onClick={handlePrint} 
+               style={{ 
+                marginTop: '10x', 
+                padding: '5px 5px', 
+                fontSize: '16px', 
+                cursor: 'pointer', 
+                backgroundColor:'#00008b', 
+                color: '#fff' 
+                }}>Raporu Yazdır</button>
           </>
         ) : null}
       </div>

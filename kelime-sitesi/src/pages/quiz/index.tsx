@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { db } from "../../firebase";
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore'; // Firestore için bu modülleri kullanın
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore'; 
 import MenuBar from "@/components/customMenuBar/customMenuBar";
 import { auth } from '../../firebase'; 
 import { useAuthState } from 'react-firebase-hooks/auth'; 
@@ -181,7 +181,12 @@ const QuizPage: React.FC = () => {
   return (
     <div style={{ display: 'flex' }}>
       <MenuBar />
-      <div className="container" style={{ marginLeft: '200px', padding: '20px', width: 'calc(100% - 200px)' }}>
+      <div className="container" 
+        style={{ 
+          marginLeft: '200px', 
+          padding: '20px', 
+          width: 'calc(100% - 200px)' 
+          }}>
         {!showQuizEndedMessage && showWordCountModal && (
           <div className="modal">
             <div className="modal-content">
@@ -215,10 +220,18 @@ const QuizPage: React.FC = () => {
             </div>
             <div className="quiz-container">
               {showedWords.slice(0, howMuch).map((word, index) => (
-                <div className="quiz-item" key={index} style={{ backgroundColor: '#1e90ff', color: '#fff' }}>
+                <div className="quiz-item" key={index} 
+                  style={{ 
+                    backgroundColor: '#1e90ff', 
+                    color: '#fff' }}>
                   <div className="image-container">
                     <div className="image-area">
-                      <img src={word.imageURL} alt="Resim" style={{ maxWidth: '100%', maxHeight: '100px', display: 'block', margin: '0 auto' }} />
+                      <img src={word.imageURL} alt="Resim" 
+                        style={{ 
+                          maxWidth: '100%', 
+                          maxHeight: '100px', 
+                          display: 'block', 
+                          margin: '0 auto' }} />
                     </div>
                   </div>
                   <div className="text-container">
